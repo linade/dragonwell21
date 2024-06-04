@@ -3105,6 +3105,9 @@ jint Arguments::finalize_vm_init_args(bool patch_mod_javabase) {
   if (UseCompactObjectHeaders && !UseCompressedClassPointers) {
     FLAG_SET_DEFAULT(UseCompressedClassPointers, true);
   }
+  if (UseCompactObjectHeaders && !UseRelaxedArrayAlignment) {
+    FLAG_SET_DEFAULT(UseRelaxedArrayAlignment, true);
+  }
 #endif
 
   return JNI_OK;

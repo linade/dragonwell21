@@ -71,6 +71,7 @@ private:
   // This is not equivalent to sizeof(arrayOopDesc) which should not appear in the code.
   static int header_size_in_bytes() {
     size_t hs = length_offset_in_bytes() + sizeof(int);
+    LP64_ONLY(if (!UseRelaxedArrayAlignment) hs = align_up(hs, HeapWordSize);)
 #ifdef ASSERT
     // make sure it isn't called before UseCompressedOops is initialized.
     static size_t arrayoopdesc_hs = 0;
@@ -95,8 +96,15 @@ private:
 
   // Returns the offset of the first element.
   static int base_offset_in_bytes(BasicType type) {
-    size_t hs = header_size_in_bytes();
-    return (int)(element_type_should_be_aligned(type) ? align_up(hs, BytesPerLong) : hs);
+#ifdef _LP64
+    if (UseRelaxedArrayAlignment) {
+      size_t hs = header_size_in_bytes();
+      return (int)(element_type_should_be_aligned(type) ? align_up(hs, BytesPerLong) : hs);
+    } else
+#endif
+    {
+      return header_size(type) * HeapWordSize;
+    }
   }
 
   // Returns the address of the first element. The elements in the array will not
@@ -131,6 +139,18 @@ private:
 
   static void set_length(HeapWord* mem, int length) {
     *length_addr_impl(mem) = length;
+  }
+
+  // Should only be called with constants as argument
+  // (will not constant fold otherwise)
+  // Returns the header size in words aligned to the requirements of the
+  // array object type.
+  static int header_size(BasicType type) {
+    size_t typesize_in_bytes = header_size_in_bytes();
+    LP64_ONLY(assert(!UseRelaxedArrayAlignment, "Don't call this");)
+    return (int)(element_type_should_be_aligned(type)
+      ? align_object_offset(typesize_in_bytes/HeapWordSize)
+      : align_up(typesize_in_bytes, HeapWordSize)/HeapWordSize);
   }
 
   // Return the maximum length of an array of BasicType.  The length can be passed

@@ -54,6 +54,7 @@ oop ZObjArrayAllocator::initialize(HeapWord* mem) const {
   // Clear leading 32 bits, if necessary.
   int base_offset = arrayOopDesc::base_offset_in_bytes(element_type);
   if (!is_aligned(base_offset, HeapWordSize)) {
+    LP64_ONLY(assert(UseRelaxedArrayAlignment, "Otherwise always aligned to word");)
     assert(is_aligned(base_offset, BytesPerInt), "array base must be 32 bit aligned");
     *reinterpret_cast<jint*>(reinterpret_cast<char*>(mem) + base_offset) = 0;
     base_offset += BytesPerInt;

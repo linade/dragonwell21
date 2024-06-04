@@ -182,6 +182,7 @@ void C1_MacroAssembler::initialize_header(Register obj, Register klass, Register
   if (len->is_valid()) {
     sw(len, Address(obj, arrayOopDesc::length_offset_in_bytes()));
     if (!is_aligned(arrayOopDesc::header_size_in_bytes(), BytesPerWord)) {
+      LP64_ONLY(assert(UseRelaxedArrayAlignment, "Otherwise always aligned to word");)
       assert(is_aligned(arrayOopDesc::header_size_in_bytes(), BytesPerInt), "must be 4-byte aligned");
       sw(zr, Address(obj, arrayOopDesc::header_size_in_bytes()));
     }

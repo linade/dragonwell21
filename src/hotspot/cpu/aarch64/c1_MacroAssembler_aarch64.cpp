@@ -302,6 +302,7 @@ void C1_MacroAssembler::allocate_array(Register obj, Register len, Register t1, 
   // for non-array objects, thereby replacing the klass-gap clearing code in initialize_header().
   int base_offset = base_offset_in_bytes;
   if (!is_aligned(base_offset, BytesPerWord)) {
+    LP64_ONLY(assert(UseRelaxedArrayAlignment, "Otherwise always aligned to word");)
     assert(is_aligned(base_offset, BytesPerInt), "must be 4-byte aligned");
     strw(zr, Address(obj, base_offset));
     base_offset += BytesPerInt;
